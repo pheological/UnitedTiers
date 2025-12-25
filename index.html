@@ -1424,10 +1424,9 @@
             spotlight.style.transform = `translate(${x}px, ${y}px)`;
         });
 
-        // Reset to initial state
         function resetToInitial() {
-            // Clear URL path back to root
-            window.history.pushState({}, '', '/');
+            // Clear URL hash back to root
+            window.history.pushState({}, '', window.location.pathname);
 
             mainContainer.classList.add('initial');
             mainContainer.classList.remove('results-active');
@@ -1690,9 +1689,8 @@
         async function handleSearch(input) {
             if (!input.trim()) return;
 
-            // Update URL with clean path using History API
-            const cleanPath = `/${input.trim()}`;
-            window.history.pushState({ player: input.trim() }, '', cleanPath);
+            // Update URL with hash
+            window.history.pushState({ player: input.trim() }, '', `#${input.trim()}`);
 
             // Switch to results view
             mainContainer.classList.remove('initial');
@@ -1807,7 +1805,7 @@
                         document.getElementById('player-name').textContent = mctiersRes.name;
                         setRegion(mctiersRes.region);
                         // Update URL with correct capitalization
-                        window.history.replaceState({ player: mctiersRes.name }, '', `/${mctiersRes.name}`);
+                        window.history.replaceState({ player: mctiersRes.name }, '', `#${mctiersRes.name}`);
                     } else {
                         mctSection.style.display = 'none';
                     }
@@ -1855,7 +1853,7 @@
                             document.getElementById('player-name').textContent = subtiersRes.name;
                             setRegion(subtiersRes.region);
                             // Update URL with correct capitalization
-                            window.history.replaceState({ player: subtiersRes.name }, '', `/${subtiersRes.name}`);
+                            window.history.replaceState({ player: subtiersRes.name }, '', `#${subtiersRes.name}`);
                         }
                     } else {
                         subSection.style.display = 'none';
@@ -1909,7 +1907,7 @@
                             document.getElementById('player-name').textContent = pvptiersRes.name;
                             setRegion(pvptiersRes.region);
                             // Update URL with correct capitalization
-                            window.history.replaceState({ player: pvptiersRes.name }, '', `/${pvptiersRes.name}`);
+                            window.history.replaceState({ player: pvptiersRes.name }, '', `#${pvptiersRes.name}`);
                         }
                     } else {
                         pvpSection.style.display = 'none';
@@ -2211,10 +2209,10 @@
 
         // Handle direct URL navigation on page load
         window.addEventListener('load', () => {
-            const pathname = window.location.pathname;
-            if (pathname && pathname !== '/') {
-                // Remove leading slash and decode URI
-                const playerName = decodeURIComponent(pathname.substring(1));
+            const hash = window.location.hash;
+            if (hash && hash.length > 1) {
+                // Remove leading # and decode URI
+                const playerName = decodeURIComponent(hash.substring(1));
                 if (playerName) {
                     handleSearch(playerName);
                 }
@@ -2223,9 +2221,9 @@
 
         // Handle browser back/forward navigation
         window.addEventListener('popstate', (e) => {
-            const pathname = window.location.pathname;
-            if (pathname && pathname !== '/') {
-                const playerName = decodeURIComponent(pathname.substring(1));
+            const hash = window.location.hash;
+            if (hash && hash.length > 1) {
+                const playerName = decodeURIComponent(hash.substring(1));
                 if (playerName) {
                     handleSearch(playerName);
                 }
