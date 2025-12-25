@@ -1212,8 +1212,8 @@
             </p>
 
             <div class="search-container">
-                <form class="search-form" id="hero-search-form">
-                    <input type="text" class="search-input" id="hero-search-input" placeholder="Search username or UUID..." autocomplete="off">
+                <form class="search-form" id="hero-search-form" data-form-type="other">
+                    <input type="text" class="search-input" id="hero-search-input" placeholder="Search username or UUID..." autocomplete="off" data-lpignore="true" data-form-type="other">
                     <button type="submit" class="search-btn">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -2097,15 +2097,20 @@
             handleSearch(heroSearchInput.value);
         });
 
-        // Additional Enter key handler for hero search input
-        heroSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+        // Robust Enter key handler for hero search input (handles password managers)
+        heroSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
                 console.log("Hero input Enter key pressed");
                 e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 const value = heroSearchInput.value.trim();
-                if (value) handleSearch(value);
+                if (value) {
+                    handleSearch(value);
+                }
+                return false;
             }
-        });
+        }, true); // Use capture phase to catch event before password managers
 
         headerSearchForm.addEventListener('submit', (e) => {
             console.log("Header form submit event triggered");
@@ -2113,15 +2118,20 @@
             handleSearch(headerSearchInput.value);
         });
 
-        // Additional Enter key handler for header search input
-        headerSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+        // Robust Enter key handler for header search input (handles password managers)
+        headerSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
                 console.log("Header input Enter key pressed");
                 e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 const value = headerSearchInput.value.trim();
-                if (value) handleSearch(value);
+                if (value) {
+                    handleSearch(value);
+                }
+                return false;
             }
-        });
+        }, true); // Use capture phase to catch event before password managers
 
         // Handle direct URL navigation on page load
         window.addEventListener('load', () => {
