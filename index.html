@@ -739,6 +739,11 @@
             box-shadow: 0 0 40px rgba(20, 184, 166, 0.15), 0 0 20px rgba(20, 184, 166, 0.1);
         }
 
+        #tiertests18-section {
+            border-color: rgba(239, 68, 68, 0.15);
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.1);
+        }
+
         .section-header {
             display: flex;
             align-items: center;
@@ -779,6 +784,11 @@
             box-shadow: 0 0 25px rgba(20, 184, 166, 0.7);
         }
 
+        #tiertests18-section .section-indicator {
+            background: #ef4444; /* red */
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.7);
+        }
+
         .tier-section.shieldless .section-indicator {
             background: #eab308; /* yellow */
             box-shadow: 0 0 25px rgba(234, 179, 8, 0.7);
@@ -806,6 +816,10 @@
 
         #tiertests-section .section-title {
             text-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
+        }
+
+        #tiertests18-section .section-title {
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
         }
 
         #shieldless-section .section-title {
@@ -885,7 +899,7 @@
             color: rgba(192, 132, 252, 0.7);
             text-shadow: 0 0 15px rgba(167, 139, 250, 0.5);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease;
             pointer-events: none;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -893,15 +907,22 @@
         }
 
         .tier-card.retired:hover .retired-label {
+            will-change: opacity;
             opacity: 1;
+        }
+
+        .tier-card.retired .tier-icon,
+        .tier-card.retired .tier-info,
+        .tier-card.retired .tier-badge {
+            transition: filter 0.2s ease, opacity 0.2s ease;
         }
 
         .tier-card.retired:hover .tier-icon,
         .tier-card.retired:hover .tier-info,
         .tier-card.retired:hover .tier-badge {
+            will-change: filter, opacity;
             opacity: 0.2;
             filter: blur(2px);
-            transition: all 0.3s ease;
         }
 
         .tier-icon {
@@ -1187,7 +1208,7 @@
             </h1>
             <p class="hero-subtitle">
                 A high-fidelity dashboard for Minecraft PvP rankings.<br>
-                MCTiers, SubTiers, PVPTiers, TierTests, and Shieldless UHC — all in one place.
+                Supports all popular tierlists.
             </p>
 
             <div class="search-container">
@@ -1205,7 +1226,7 @@
                 <span class="badge">MCTiers</span>
                 <span class="badge">SubTiers</span>
                 <span class="badge">PVPTiers</span>
-                <span class="badge">TierTests</span>
+                <span class="badge">[1.9+] Tier Tests</span>
                 <span class="badge">Shieldless UHC</span>
             </div>
         </section>
@@ -1313,6 +1334,17 @@
                         <div class="tier-grid" id="tiertests-grid"></div>
                     </div>
 
+                    <!-- TierTests 1.8 Section -->
+                    <div class="tier-section glass" id="tiertests18-section" style="display: none;">
+                        <div class="section-header">
+                            <div class="section-title-wrapper">
+                                <div class="section-indicator"></div>
+                                <h3 class="section-title">[1.8] Tier Tests</h3>
+                            </div>
+                        </div>
+                        <div class="tier-grid" id="tiertests18-grid"></div>
+                    </div>
+
                     <!-- Empty State -->
                     <div class="empty-state glass" id="empty-state">
                         <p>No ranking data found for this player on any supported lists.</p>
@@ -1347,8 +1379,8 @@
 
         // Reset to initial state
         function resetToInitial() {
-            // Clear URL hash
-            window.location.hash = '';
+            // Clear URL path back to root
+            window.history.pushState({}, '', '/');
 
             mainContainer.classList.add('initial');
             mainContainer.classList.remove('results-active');
@@ -1585,8 +1617,9 @@
         async function handleSearch(input) {
             if (!input.trim()) return;
 
-            // Update URL hash with the player name
-            window.location.hash = input.trim();
+            // Update URL with clean path using History API
+            const cleanPath = `/${input.trim()}`;
+            window.history.pushState({ player: input.trim() }, '', cleanPath);
 
             // Switch to results view
             mainContainer.classList.remove('initial');
@@ -1697,6 +1730,8 @@
                         foundAnyData = true;
                         document.getElementById('player-name').textContent = mctiersRes.name;
                         setRegion(mctiersRes.region);
+                        // Update URL with correct capitalization
+                        window.history.replaceState({ player: mctiersRes.name }, '', `/${mctiersRes.name}`);
                     } else {
                         mctSection.style.display = 'none';
                     }
@@ -1743,6 +1778,8 @@
                         if (!mctiersRes) {
                             document.getElementById('player-name').textContent = subtiersRes.name;
                             setRegion(subtiersRes.region);
+                            // Update URL with correct capitalization
+                            window.history.replaceState({ player: subtiersRes.name }, '', `/${subtiersRes.name}`);
                         }
                     } else {
                         subSection.style.display = 'none';
@@ -1795,6 +1832,8 @@
                         if (!mctiersRes && !subtiersRes) {
                             document.getElementById('player-name').textContent = pvptiersRes.name;
                             setRegion(pvptiersRes.region);
+                            // Update URL with correct capitalization
+                            window.history.replaceState({ player: pvptiersRes.name }, '', `/${pvptiersRes.name}`);
                         }
                     } else {
                         pvpSection.style.display = 'none';
@@ -1890,6 +1929,104 @@
                     tierTestsSection.style.display = 'none';
                 }
 
+                // Process TierTests 1.8 (Legacy gamemodes)
+                const tierTests18Section = document.getElementById('tiertests18-section');
+                const tierTests18Grid = document.getElementById('tiertests18-grid');
+                tierTests18Section.querySelector('.tier-info-container')?.remove();
+
+                if (tiertestsRes && Array.isArray(tiertestsRes) && tiertestsRes.length > 0) {
+                    // Define legacy gamemodes to include in 1.8 section
+                    const legacyGamemodes = [
+                        'bedwars', 'bw',
+                        'sumo',
+                        'bedfight', 'bedfights',
+                        'bridge',
+                        'builduhc', 'buhc',
+                        'nodebuff',
+                        'emerald', 'emeraldrush', 'emerald_rush',
+                        'boxing',
+                        'gapple',
+                        'combo',
+                        'debuff',
+                        'shields',
+                        'soup',
+                        'classic'
+                    ];
+
+                    // Filter to only legacy gamemodes
+                    const legacyEntries = tiertestsRes.filter(entry => {
+                        const gameMode = entry.gamemode.toLowerCase();
+                        return legacyGamemodes.includes(gameMode);
+                    });
+
+                    const cards18 = legacyEntries.map(entry => {
+                        const numericTier = tierTestsToNumeric(entry.tier);
+                        if (numericTier > 0) tierValues.push(numericTier);
+
+                        const gameMode = entry.gamemode.toLowerCase();
+                        const tierClass = getTierTestsClass(entry.tier);
+                        const tierDisplay = formatTierTestsTier(entry.tier);
+
+                        // Map legacy gamemode names to icons
+                        const gamemodeIconMap = {
+                            'bedwars': 'bed',
+                            'bw': 'bed',
+                            'sumo': 'sword',
+                            'bedfight': 'bed',
+                            'bedfights': 'bed',
+                            'bridge': 'bow',
+                            'builduhc': 'uhc',
+                            'buhc': 'uhc',
+                            'nodebuff': 'pot',
+                            'emerald': 'dia_crystal',
+                            'emeraldrush': 'dia_crystal',
+                            'emerald_rush': 'dia_crystal',
+                            'boxing': 'sword',
+                            'gapple': 'pot',
+                            'combo': 'sword',
+                            'debuff': 'debuff',
+                            'shields': 'sword',
+                            'soup': 'pot',
+                            'classic': 'sword'
+                        };
+                        const iconName = gamemodeIconMap[gameMode] || 'sword';
+                        // Try subtiers folder first for some icons
+                        const iconFolder = ['bed', 'bow', 'debuff', 'dia_crystal'].includes(iconName) ? 'subtiers' : 'mctiers';
+                        let iconUrl = `tiers/${iconFolder}/${iconName}.svg`;
+
+                        // Format display name
+                        let displayName = entry.gamemode;
+                        if (gameMode === 'bw') displayName = 'Bedwars';
+                        else if (gameMode === 'buhc') displayName = 'Build UHC';
+                        else if (gameMode === 'emeraldrush' || gameMode === 'emerald_rush') displayName = 'Emerald Rush';
+
+                        return `
+                            <div class="tier-card">
+                                <img src="${iconUrl}" alt="${displayName}" class="tier-icon" onerror="this.src='tiers/mctiers/sword.svg'">
+                                <div class="tier-info">
+                                    <div class="tier-name">${displayName}</div>
+                                </div>
+                                <div class="tier-badge ${tierClass}">
+                                    <span class="tier-current">${tierDisplay}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (cards18.length > 0) {
+                        tierTests18Section.style.display = 'block';
+                        tierTests18Grid.innerHTML = cards18;
+
+                        totalRanked += legacyEntries.length;
+                        listsTracked++;
+                        foundAnyData = true;
+                    } else {
+                        tierTests18Section.style.display = 'none';
+                    }
+                } else {
+                    tierTests18Section.style.display = 'none';
+                }
+
                 // Process Shieldless UHC
                 const shieldSection = document.getElementById('shieldless-section');
                 const shieldGrid = document.getElementById('shieldless-grid');
@@ -1955,31 +2092,57 @@
 
         // Event listeners
         heroSearchForm.addEventListener('submit', (e) => {
+            console.log("Hero form submit event triggered");
             e.preventDefault();
             handleSearch(heroSearchInput.value);
         });
 
+        // Additional Enter key handler for hero search input
+        heroSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                console.log("Hero input Enter key pressed");
+                e.preventDefault();
+                const value = heroSearchInput.value.trim();
+                if (value) handleSearch(value);
+            }
+        });
+
         headerSearchForm.addEventListener('submit', (e) => {
+            console.log("Header form submit event triggered");
             e.preventDefault();
             handleSearch(headerSearchInput.value);
         });
 
-        // Check URL hash on page load and auto-search if present
-        window.addEventListener('load', () => {
-            const hash = window.location.hash.substring(1); // Remove the '#' character
-            if (hash) {
-                // Decode the hash in case it contains special characters
-                const playerName = decodeURIComponent(hash);
-                handleSearch(playerName);
+        // Additional Enter key handler for header search input
+        headerSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                console.log("Header input Enter key pressed");
+                e.preventDefault();
+                const value = headerSearchInput.value.trim();
+                if (value) handleSearch(value);
             }
         });
 
-        // Handle hash changes (back/forward navigation)
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                const playerName = decodeURIComponent(hash);
-                handleSearch(playerName);
+        // Handle direct URL navigation on page load
+        window.addEventListener('load', () => {
+            const pathname = window.location.pathname;
+            if (pathname && pathname !== '/') {
+                // Remove leading slash and decode URI
+                const playerName = decodeURIComponent(pathname.substring(1));
+                if (playerName) {
+                    handleSearch(playerName);
+                }
+            }
+        });
+
+        // Handle browser back/forward navigation
+        window.addEventListener('popstate', (e) => {
+            const pathname = window.location.pathname;
+            if (pathname && pathname !== '/') {
+                const playerName = decodeURIComponent(pathname.substring(1));
+                if (playerName) {
+                    handleSearch(playerName);
+                }
             } else {
                 resetToInitial();
             }
