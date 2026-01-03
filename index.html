@@ -113,10 +113,11 @@
             font-weight: 900;
             letter-spacing: -0.05em;
             margin-bottom: 1rem;
-            line-height: 1;
+            line-height: 1.1;
             opacity: 0;
             animation: slideUpFade 0.8s ease-out 0.4s forwards;
-            padding: 0 0.1em;
+            padding: 0 0.3em;
+            overflow: visible;
         }
 
         @keyframes slideUpFade {
@@ -131,18 +132,21 @@
         }
 
         .hero-title .highlight {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8, #3b82f6);
-            background-size: 200% auto;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6, #1d4ed8, #2563eb, #60a5fa);
+            background-size: 300% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
+            animation: gradient-shift 4s ease-in-out infinite;
             text-shadow: 0 0 60px rgba(59, 130, 246, 0.5);
+            display: inline-block;
+            padding-right: 0.05em;
         }
 
         @keyframes gradient-shift {
-            0%, 100% { background-position: 0% center; }
+            0% { background-position: 0% center; }
             50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
         }
 
         .hero-subtitle {
@@ -227,7 +231,10 @@
             gap: 0.75rem;
             justify-content: center;
             flex-wrap: wrap;
+            max-width: 700px;
+            margin: 0 auto;
         }
+
 
         .badge {
             padding: 0.5rem 1rem;
@@ -239,7 +246,52 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: #71717a;
+            transition: all 0.3s ease;
+            cursor: default;
         }
+
+        .badge:nth-of-type(1):hover {
+            color: rgba(236, 72, 153, 1);
+            text-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+            border-color: rgba(236, 72, 153, 0.3);
+            background: rgba(236, 72, 153, 0.05);
+        }
+
+        .badge:nth-of-type(2):hover {
+            color: rgba(59, 130, 246, 1);
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .badge:nth-of-type(3):hover {
+            color: rgba(249, 115, 22, 1);
+            text-shadow: 0 0 20px rgba(249, 115, 22, 0.6);
+            border-color: rgba(249, 115, 22, 0.3);
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .badge:nth-of-type(4):hover {
+            color: rgba(234, 179, 8, 1);
+            text-shadow: 0 0 20px rgba(234, 179, 8, 0.6);
+            border-color: rgba(234, 179, 8, 0.3);
+            background: rgba(234, 179, 8, 0.05);
+        }
+
+        .badge:nth-of-type(5):hover {
+            color: rgba(20, 184, 166, 1);
+            text-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
+            border-color: rgba(20, 184, 166, 0.3);
+            background: rgba(20, 184, 166, 0.05);
+        }
+
+        .badge:nth-of-type(6):hover {
+            color: rgba(239, 68, 68, 1);
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
 
         .badge.soon {
             background: rgba(234, 179, 8, 0.05);
@@ -1273,8 +1325,10 @@
                 <span class="badge">MCTiers</span>
                 <span class="badge">SubTiers</span>
                 <span class="badge">PVPTiers</span>
-                <span class="badge">[1.9+] Tier Tests</span>
                 <span class="badge">Shieldless UHC</span>
+                <div style="flex-basis: 100%; height: 0;"></div>
+                <span class="badge">[1.9+] Tier Tests</span>
+                <span class="badge">[1.8] Tier Tests</span>
             </div>
         </section>
 
@@ -1623,8 +1677,7 @@
 
         // Create tier card HTML
         function createTierCard(game, ranking, platform) {
-            // Filter out og_vanilla
-            if (game === 'og_vanilla') return '';
+
 
             // Check for retired status - can be boolean true/false or integer 0/1
             const isRetired = ranking.retired === true || ranking.retired === 1 || ranking.is_retired === true || ranking.is_retired === 1;
