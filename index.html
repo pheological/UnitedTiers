@@ -416,20 +416,31 @@
             align-items: center;
             justify-content: center;
             padding: 5rem 2rem;
+            font-family: 'Inter', sans-serif;
         }
 
-        .spinner {
-            width: 3rem;
-            height: 3rem;
-            border: 3px solid rgba(59, 130, 246, 0.2);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .progress-container {
+            width: 100%;
+            max-width: 250px; /* Smaller width */
             margin-bottom: 1.5rem;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px; /* Smaller height */
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #3b82f6; /* Solid blue color */
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
         }
 
         .loading-text {
@@ -438,6 +449,12 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.2em;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .loading-percentage {
+            display: none; /* Hide percentage */
         }
 
         /* Error State */
@@ -1330,8 +1347,12 @@
         <section class="results-section" id="results-section">
             <!-- Loading State -->
             <div class="loading-state" id="loading-state">
-                <div class="spinner"></div>
-                <p class="loading-text">Aggregating Player Rankings...</p>
+                <div class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                    </div>
+                </div>
+                <p class="loading-text" id="loading-text">Initializing...</p>
             </div>
 
             <!-- Error State -->
@@ -1469,6 +1490,9 @@
         const fixedHeader = document.getElementById('fixed-header');
         const resultsSection = document.getElementById('results-section');
         const loadingState = document.getElementById('loading-state');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const loadingText = document.getElementById('loading-text');
+        const loadingPercentage = document.getElementById('loading-percentage');
         const errorState = document.getElementById('error-state');
         const dataContainer = document.getElementById('data-container');
 
@@ -1763,6 +1787,20 @@
             errorState.classList.remove('visible');
             dataContainer.style.display = 'none';
 
+            // Reset progress bar
+            progressBarFill.style.width = '0%';
+            loadingText.textContent = 'Aggregating Player Rankings...';
+
+            // Function to update progress
+            const totalAPIs = 5; // playerdb, mctiers, subtiers, pvptiers, tiertests
+            let completedAPIs = 0;
+
+            const updateProgress = () => {
+                completedAPIs++;
+                const percentage = Math.round((completedAPIs / totalAPIs) * 100);
+                progressBarFill.style.width = percentage + '%';
+            };
+
             // Sync search inputs
             headerSearchInput.value = input;
 
@@ -1802,20 +1840,39 @@
                     document.querySelector('.player-stats').classList.remove('golden');
                 }
 
-                // Fetch ALL APIs in parallel (including Shieldless UHC, PVP Tiers, and TierTests)
+                // Fetch ALL APIs with progress tracking
                 // Format UUID with dashes for TierTests
                 const formattedUuid = uuid.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
                 console.log('TierTests - UUID (no dashes):', uuid);
                 console.log('TierTests - UUID (formatted):', formattedUuid);
                 console.log('TierTests - API URL:', `https://public.tiertests.com/api/v1/tiers/${formattedUuid}`);
 
-                const [mctiersRes, subtiersRes, shieldlessRes, pvptiersRes, tiertestsRes] = await Promise.all([
-                    fetch(`https://mctiers.com/api/profile/${uuid}`).then(r => r.ok ? r.json() : null).catch(() => null),
-                    fetch(`https://subtiers.net/api/profile/${uuid}`).then(r => r.ok ? r.json() : null).catch(() => null),
-                    fetch(`https://corsproxy.io/?${encodeURIComponent(`https://www.shieldlessuhc.xyz/api/profile/${uuid}`)}`).then(r => r.ok ? r.json() : null).catch(() => null),
-                    fetch(`https://corsproxy.io/?${encodeURIComponent(`https://pvptiers.com/api/profile/${uuid}`)}`).then(r => r.ok ? r.json() : null).catch(() => null),
-                    fetch(`https://corsproxy.io/?${encodeURIComponent(`https://public.tiertests.com/api/v1/tiers/${formattedUuid}`)}`).then(r => r.ok ? r.json() : null).catch(() => null)
-                ]);
+                // Fetch APIs one by one to track progress
+                updateProgress();
+
+                const mctiersRes = await fetch(`https://mctiers.com/api/profile/${uuid}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+                updateProgress();
+
+                const subtiersRes = await fetch(`https://subtiers.net/api/profile/${uuid}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+                updateProgress();
+
+                const shieldlessRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://www.shieldlessuhc.xyz/api/profile/${uuid}`)}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+
+                const pvptiersRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://pvptiers.com/api/profile/${uuid}`)}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+                updateProgress();
+
+                const tiertestsRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://public.tiertests.com/api/v1/tiers/${formattedUuid}`)}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+                updateProgress();
 
                 let totalRanked = 0;
                 let listsTracked = 0;
