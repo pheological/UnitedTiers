@@ -920,6 +920,17 @@
             gap: 0.75rem;
         }
 
+        @keyframes card-pop-in {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Tier Card */
         .tier-card {
             position: relative;
@@ -932,6 +943,7 @@
             border-radius: 0.875rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: default;
+            animation: card-pop-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
         }
 
         .tier-card:hover {
@@ -1597,7 +1609,7 @@
         }
 
         // TierTests tier formatting and conversion functions
-        function formatTierTestsTier(tier) {
+        /*function formatTierTestsTier(tier) {
             const t = tier.toUpperCase();
             if (t === 'S') return 'S';
             if (t === 'A_PLUS') return 'A+';
@@ -1656,7 +1668,7 @@
             // LT5 → F
             if (t === 'F') return 'tier-lt5';
             return '';
-        }
+        }*/
 
         // Format tier display
         function formatTier(tier, pos) {
@@ -1860,7 +1872,7 @@
                     .catch(() => null);
                 updateProgress();
 
-                const shieldlessRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://www.shieldlessuhc.xyz/api/profile/${uuid}`)}`)
+                const shieldlessRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://www.shieldlessuhc.xyz/api/profile/${uuid}`)}`, { cache: 'no-cache' })
                     .then(r => r.ok ? r.json() : null)
                     .catch(() => null);
 
@@ -1878,6 +1890,7 @@
                 let listsTracked = 0;
                 let foundAnyData = false;
                 let tierValues = []; // Track all tier values for averaging
+                let cardIndex = 0;
 
                 // Debug logging for PVP Tiers
                 console.log('PVP Tiers Response:', pvptiersRes);
@@ -1893,7 +1906,7 @@
                         // Add tier to average calculation
                         const numericTier = tierToNumeric(ranking.tier, ranking.pos);
                         if (numericTier > 0) tierValues.push(numericTier);
-                        return createTierCard(k, ranking, 'mctiers');
+                        return createTierCard(k, ranking, 'mctiers', cardIndex++);
                     }).filter(card => card !== '');
                     if (cards.length > 0) {
                         mctSection.style.display = 'block';
@@ -1940,7 +1953,7 @@
                         // Add tier to average calculation
                         const numericTier = tierToNumeric(ranking.tier, ranking.pos);
                         if (numericTier > 0) tierValues.push(numericTier);
-                        return createTierCard(k, ranking, 'subtiers');
+                        return createTierCard(k, ranking, 'subtiers', cardIndex++);
                     }).filter(card => card !== '');
                     if (cards.length > 0) {
                         subSection.style.display = 'block';
@@ -1994,7 +2007,7 @@
                         // Add tier to average calculation
                         const numericTier = tierToNumeric(ranking.tier, ranking.pos);
                         if (numericTier > 0) tierValues.push(numericTier);
-                        return createTierCard(k, ranking, 'pvptiers');
+                        return createTierCard(k, ranking, 'pvptiers', cardIndex++);
                     }).filter(card => card !== '');
                     if (cards.length > 0) {
                         pvpSection.style.display = 'block';
@@ -2033,7 +2046,7 @@
                 }
 
                 // Process TierTests
-                const tierTestsSection = document.getElementById('tiertests-section');
+                /*const tierTestsSection = document.getElementById('tiertests-section');
                 const tierTestsGrid = document.getElementById('tiertests-grid');
                 tierTestsSection.querySelector('.tier-info-container')?.remove();
 
@@ -2215,7 +2228,7 @@
                     }
                 } else {
                     tierTests18Section.style.display = 'none';
-                }
+                }*/
 
                 // Process Shieldless UHC
                 const shieldSection = document.getElementById('shieldless-section');
@@ -2235,7 +2248,7 @@
                         peak_tier: shieldlessRes.peak_tier,
                         peak_pos: 0,
                         retired: shieldlessRes.is_retired
-                    }, 'shieldless');
+                    }, 'shieldless', cardIndex++);
 
                     totalRanked += 1;
                     listsTracked++;
